@@ -1,0 +1,11 @@
+CHECK - If alarm is armed and a sensor becomes activated, put the system into pending alarm status.
+CHECK - If alarm is armed and a sensor becomes activated and the system is already pending alarm, set the alarm status to alarm.
+CHECK - If pending alarm and all sensors are inactive, return to no alarm state.
+CHECK - If alarm is active, change in sensor state should not affect the alarm state.
+CHECK - If a sensor is activated while already active and the system is in pending state, change it to alarm state.
+CHECH - If a sensor is deactivated while already inactive, make no changes to the alarm state.
+If the image service identifies an image containing a cat while the system is armed-home, put the system into alarm status.
+If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
+If the system is disarmed, set the status to no alarm.
+If the system is armed, reset all sensors to inactive.
+If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
