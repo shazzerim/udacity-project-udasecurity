@@ -18,16 +18,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class SecurityServiceTest {
 
+    Sensor firstSensor;
+    Sensor secondSensor;
     @InjectMocks
     SecurityService securityService;
     @Mock
     SecurityRepository securityRepository;
     @Mock
-    Sensor firstSensor;
-    @Mock
-    Sensor secondSensor;
-    @Mock
     ImageService imageService;
+
     @BeforeEach
     void init() {
         firstSensor = new Sensor("firstSensor", SensorType.WINDOW);
@@ -120,9 +119,9 @@ class SecurityServiceTest {
         when(securityService.getAlarmStatus()).thenReturn(AlarmStatus.PENDING_ALARM);
         firstSensor.setActive(true);
         //when
-        securityService.changeSensorActivationStatus(firstSensor,true);
+        securityService.changeSensorActivationStatus(firstSensor, true);
         //then
-        verify(securityRepository,times(1)).setAlarmStatus(AlarmStatus.ALARM);
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
     }
 
     /**
@@ -136,7 +135,7 @@ class SecurityServiceTest {
         //when
         securityService.changeSensorActivationStatus(firstSensor, false); // sensor false per default
         //then
-        verify(securityRepository,never()).setAlarmStatus(any(AlarmStatus.class));
+        verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
     }
 
     /**
@@ -147,12 +146,28 @@ class SecurityServiceTest {
     void given_armed_home_when_imageservice_identify_cat_then_alarm_status_alarm() {
         //given
         when(securityService.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
-        when(imageService.imageContainsCat(any(BufferedImage.class),anyFloat())).thenReturn(true);
+        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(true);
         //when
         securityService.processImage(mock(BufferedImage.class));
         //then
-        verify(securityRepository,times(1)).setAlarmStatus(AlarmStatus.ALARM);
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 
+    }
+
+    /**
+     * Test 8: If the image service identifies an image that does not contain a cat, change the status to no alarm
+     * as long as the sensors are not active.
+     */
+
+    @ParameterizedTest
+    @EnumSource(AlarmStatus.class)
+    void given_sensors_inactive_when_imageservice_does_not_detect_cat_then_alarm_status_no_alarm(AlarmStatus alarmStatus){
+        //given
+//        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(false);
+        //when
+        securityService.processImage(mock(BufferedImage.class));
+        //then
+        verify(securityRepository,times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
 }
