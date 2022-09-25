@@ -21,12 +21,13 @@ import java.util.Set;
  */
 public class SecurityService {
 
-    private ImageService imageService = new FakeImageService();
+    private ImageService imageService;
     private SecurityRepository securityRepository;
     private Set<StatusListener> statusListeners = new HashSet<>();
 
-    public SecurityService(SecurityRepository securityRepository) {
+    public SecurityService(SecurityRepository securityRepository, ImageService imageService) {
         this.securityRepository = securityRepository;
+        this.imageService = imageService;
     }
 
     /**
