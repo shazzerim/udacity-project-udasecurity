@@ -8,6 +8,7 @@ import com.udacity.catpoint.image.service.FakeImageService;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
+import java.util.prefs.BackingStoreException;
 
 /**
  * This is the primary JFrame for the application that contains all the top-level JPanels.
@@ -24,7 +25,7 @@ public class CatpointGui extends JFrame {
     private SensorPanel sensorPanel = new SensorPanel(securityService);
     private ImagePanel imagePanel = new ImagePanel(securityService);
 
-    public CatpointGui() {
+    public CatpointGui() throws BackingStoreException {
         setLocation(100, 100);
         setSize(600, 850);
         setTitle("Very Secure App");
