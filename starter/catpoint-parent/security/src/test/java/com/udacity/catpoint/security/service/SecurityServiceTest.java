@@ -200,15 +200,17 @@ class SecurityServiceTest {
     /**
      * Test 10: If the system is armed, reset all sensors to inactive.
      */
-    @Test
-    void given_system_disarmed_when_system_armed_then_all_sensors_inactive() {
+    @ParameterizedTest
+    @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
+    void given_system_disarmed_when_system_armed_then_all_sensors_inactive(ArmingStatus armingStatus) {
         //given
         firstSensor.setActive(true);
-        Set<Sensor> sensorSet = new HashSet<Sensor>(Arrays.asList(firstSensor, secondSensor));
+        Set<Sensor> sensorSet = new HashSet<>(Arrays.asList(firstSensor, secondSensor));
         when(securityRepository.getSensors()).thenReturn(sensorSet);
+        when(securityRepository.getAlarmStatus()).thenReturn(AlarmStatus.NO_ALARM);
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         //when
-        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+        securityService.setArmingStatus(armingStatus);
         //then
         assertFalse(securityService.isOneOrMoreSensorsActive());
     }
