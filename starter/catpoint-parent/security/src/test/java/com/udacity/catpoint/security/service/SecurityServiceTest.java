@@ -194,7 +194,7 @@ class SecurityServiceTest {
         //when
         securityService.setArmingStatus(ArmingStatus.DISARMED);
         //then
-        verify(securityRepository, times(1)).setArmingStatus(ArmingStatus.DISARMED);
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
     /**
@@ -214,4 +214,20 @@ class SecurityServiceTest {
         //then
         assertFalse(securityService.isOneOrMoreSensorsActive());
     }
+
+    /**
+     * Test 11: If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
+     */
+    @Test
+    void given_system_not_armed_home_when_cat_on_camera_then_alarm_status_alarm() {
+        //given
+        when(securityRepository.getArmingStatus()).thenReturn(ArmingStatus.ARMED_HOME);
+        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(true);
+        //when
+        securityService.processImage(mock(BufferedImage.class));
+        //then
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
+
+    }
 }
+
