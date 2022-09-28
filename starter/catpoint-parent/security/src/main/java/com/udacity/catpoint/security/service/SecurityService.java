@@ -1,6 +1,5 @@
 package com.udacity.catpoint.security.service;
 
-import com.udacity.catpoint.image.service.FakeImageService;
 import com.udacity.catpoint.image.service.ImageService;
 import com.udacity.catpoint.security.application.StatusListener;
 import com.udacity.catpoint.security.data.AlarmStatus;
@@ -25,6 +24,8 @@ public class SecurityService {
     private SecurityRepository securityRepository;
     private Set<StatusListener> statusListeners = new HashSet<>();
 
+    private boolean isCatDetected;
+
     public SecurityService(SecurityRepository securityRepository, ImageService imageService) {
         this.securityRepository = securityRepository;
         this.imageService = imageService;
@@ -39,9 +40,17 @@ public class SecurityService {
     public void setArmingStatus(ArmingStatus armingStatus) {
         if (armingStatus == ArmingStatus.DISARMED) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
+        } else {
+            getSensors()
+                    .stream()
+                    .forEach(oneSensor -> changeSensorActivationStatus(oneSensor, false));
+            if (isCatDetected){
+                setAlarmStatus(AlarmStatus.ALARM);
+            }
         }
         securityRepository.setArmingStatus(armingStatus);
     }
+
 
     /**
      * Internal method that handles alarm status changes based on whether
@@ -50,14 +59,20 @@ public class SecurityService {
      * @param cat True if a cat is detected, otherwise false.
      */
     private void catDetected(Boolean cat) {
-
+        isCatDetected = cat;
         if (cat && getArmingStatus() == ArmingStatus.ARMED_HOME) {
             setAlarmStatus(AlarmStatus.ALARM);
-        } else {
+        } else if (!cat && !isOneOrMoreSensorsActive()) {
             setAlarmStatus(AlarmStatus.NO_ALARM);
         }
 
         statusListeners.forEach(sl -> sl.catDetected(cat));
+    }
+
+    boolean isOneOrMoreSensorsActive() {
+        return getSensors()
+                .stream()
+                .anyMatch(oneSensor -> oneSensor.getActive().equals(true));
     }
 
     /**

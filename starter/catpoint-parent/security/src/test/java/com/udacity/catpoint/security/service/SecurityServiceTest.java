@@ -12,7 +12,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,12 +32,11 @@ class SecurityServiceTest {
     @Mock
     ImageService imageService;
 
+
     @BeforeEach
     void init() {
         firstSensor = new Sensor("firstSensor", SensorType.WINDOW);
         secondSensor = new Sensor("secondSensor", SensorType.DOOR);
-        securityService.addSensor(firstSensor);
-        securityService.addSensor(secondSensor);
     }
 
     /**
@@ -94,9 +98,6 @@ class SecurityServiceTest {
         verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
     }
 
-    /**
-     * Test 4: If alarm is active, change in sensor state should not affect the alarm state.
-     */
     @Test
     void given_alarm_status_alarm_when_all_sensor_inactive_then_alarm_status_alarm() {
         //given
@@ -158,16 +159,57 @@ class SecurityServiceTest {
      * Test 8: If the image service identifies an image that does not contain a cat, change the status to no alarm
      * as long as the sensors are not active.
      */
-
     @ParameterizedTest
     @EnumSource(AlarmStatus.class)
-    void given_sensors_inactive_when_imageservice_does_not_detect_cat_then_alarm_status_no_alarm(AlarmStatus alarmStatus){
+    void given_sensors_inactive_when_imageservice_detect_something_but_cat_then_alarm_status_no_alarm(AlarmStatus alarmStatus) {
         //given
-//        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(false);
+        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(false);
         //when
         securityService.processImage(mock(BufferedImage.class));
         //then
-        verify(securityRepository,times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
+    @ParameterizedTest
+    @EnumSource(AlarmStatus.class)
+    void given_sensors_active_when_imageservice_detect_something_but_cat_then_alarm_status_not_changing(AlarmStatus alarmStatus) {
+        //given
+        firstSensor.setActive(true);
+        Set<Sensor> sensorSet = new HashSet<Sensor>(Arrays.asList(firstSensor, secondSensor));
+        when(securityRepository.getSensors()).thenReturn(sensorSet);
+        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(false);
+        //when
+        securityService.processImage(mock(BufferedImage.class));
+        //then
+        verify(securityRepository, never()).setAlarmStatus(any(AlarmStatus.class));
+    }
+
+    /**
+     * Test 9: If the system is disarmed, set the status to no alarm.
+     */
+    @Test
+    void given_system_armed_when_system_disarmed_then_alarm_status_no_alarm() {
+        //given
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+        //when
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
+        //then
+        verify(securityRepository, times(1)).setArmingStatus(ArmingStatus.DISARMED);
+    }
+
+    /**
+     * Test 10: If the system is armed, reset all sensors to inactive.
+     */
+    @Test
+    void given_system_disarmed_when_system_armed_then_all_sensors_inactive() {
+        //given
+        firstSensor.setActive(true);
+        Set<Sensor> sensorSet = new HashSet<Sensor>(Arrays.asList(firstSensor, secondSensor));
+        when(securityRepository.getSensors()).thenReturn(sensorSet);
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
+        //when
+        securityService.setArmingStatus(ArmingStatus.ARMED_HOME);
+        //then
+        assertFalse(securityService.isOneOrMoreSensorsActive());
+    }
 }

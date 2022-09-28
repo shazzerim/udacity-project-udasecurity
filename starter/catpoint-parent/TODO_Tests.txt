@@ -5,7 +5,7 @@ CHECK - If alarm is active, change in sensor state should not affect the alarm s
 CHECK - If a sensor is activated while already active and the system is in pending state, change it to alarm state.
 CHECH - If a sensor is deactivated while already inactive, make no changes to the alarm state.
 CHECK - If the image service identifies an image containing a cat while the system is armed-home, put the system into alarm status.
-CHECK - 8If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
-If the system is disarmed, set the status to no alarm.
+CHECK - If the image service identifies an image that does not contain a cat, change the status to no alarm as long as the sensors are not active.
+CHECK - If the system is disarmed, set the status to no alarm.
 If the system is armed, reset all sensors to inactive.
 If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
