@@ -44,6 +44,13 @@ public class SecurityService {
         } else {
             ConcurrentSkipListSet<Sensor> sensors = new ConcurrentSkipListSet<>(getSensors());
             sensors.forEach(sensor -> changeSensorActivationStatus(sensor, false));
+
+            //Question:
+            // why does the following line work, instead of the upper two lines?
+            //It throws an "Exception in thread "AWT-EventQueue-0" java.util.ConcurrentModificationException" while
+            //running the application with active sensors when arming the system
+            //getSensors().forEach(oneSensor -> changeSensorActivationStatus(oneSensor,false));
+
             if (isCatDetected){
                 setAlarmStatus(AlarmStatus.ALARM);
             }
