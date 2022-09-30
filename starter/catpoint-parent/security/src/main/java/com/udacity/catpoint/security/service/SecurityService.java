@@ -47,8 +47,10 @@ public class SecurityService {
 
             //Question:
             // why does the following line work, instead of the upper two lines?
-            //It throws an "Exception in thread "AWT-EventQueue-0" java.util.ConcurrentModificationException" while
-            //running the application with active sensors when arming the system
+            //It throws an "ConcurrentModificationException" while
+            //running the application with active sensors when arming the system.
+            //I am confused because I thought this exception occurs when adding/removing items from a set while iterating over it. But
+            //here I'm just changing some status?!
             //getSensors().forEach(oneSensor -> changeSensorActivationStatus(oneSensor,false));
 
             if (isCatDetected){
