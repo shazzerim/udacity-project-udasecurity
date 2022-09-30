@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.*;
 
@@ -159,9 +158,8 @@ class SecurityServiceTest {
      * Test 8: If the image service identifies an image that does not contain a cat, change the status to no alarm
      * as long as the sensors are not active.
      */
-    @ParameterizedTest
-    @EnumSource(AlarmStatus.class)
-    void given_sensors_inactive_when_imageservice_detect_something_but_cat_then_alarm_status_no_alarm(AlarmStatus alarmStatus) {
+    @Test
+    void given_sensors_inactive_when_imageservice_detect_something_but_cat_then_alarm_status_no_alarm() {
         //given
         when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(false);
         //when
@@ -170,9 +168,8 @@ class SecurityServiceTest {
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.NO_ALARM);
     }
 
-    @ParameterizedTest
-    @EnumSource(AlarmStatus.class)
-    void given_sensors_active_when_imageservice_detect_something_but_cat_then_alarm_status_not_changing(AlarmStatus alarmStatus) {
+    @Test
+    void given_sensors_active_when_imageservice_detect_something_but_cat_then_alarm_status_not_changing() {
         //given
         firstSensor.setActive(true);
         Set<Sensor> sensorSet = new HashSet<Sensor>(Arrays.asList(firstSensor, secondSensor));
@@ -216,7 +213,7 @@ class SecurityServiceTest {
     }
 
     /**
-     * Test 11: If the system is armed-home while the camera shows a cat, set the alarm status to alarm.
+     * Test 11: If the system is armed-home while the camera shows a cat, then set the alarm status to alarm.
      */
     @Test
     void given_system_not_armed_home_when_cat_on_camera_then_alarm_status_alarm() {
@@ -225,6 +222,24 @@ class SecurityServiceTest {
         when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(true);
         //when
         securityService.processImage(mock(BufferedImage.class));
+        //then
+        verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
+
+    }
+
+    /**
+     * additional A
+     * system is not armed but cat is detected, when system armed then alarm
+     */
+    @ParameterizedTest
+    @EnumSource(value = ArmingStatus.class, names = {"ARMED_HOME", "ARMED_AWAY"})
+    void given_system_not_armed_and_cat_detected_when_system_armed_then_alarm_status_alarm(ArmingStatus armingStatus) {
+        //given
+        securityService.setArmingStatus(ArmingStatus.DISARMED);
+        when(imageService.imageContainsCat(any(BufferedImage.class), anyFloat())).thenReturn(true);
+        securityService.processImage(mock(BufferedImage.class));
+        //when
+        securityService.setArmingStatus(armingStatus);
         //then
         verify(securityRepository, times(1)).setAlarmStatus(AlarmStatus.ALARM);
 
